@@ -28,7 +28,7 @@ class DelayMatchSample(ngym.TrialEnv):
     def __init__(self, dt=100, rewards=None, timing=None, sigma=1.0,
                  dim_ring=2):
         super().__init__(dt=dt)
-        self.choices = [1, 2]
+        self.choices = [1, 2]   # 1: match, 2: non-match
         self.sigma = sigma / np.sqrt(self.dt)  # Input noise
 
         # Rewards
@@ -36,6 +36,7 @@ class DelayMatchSample(ngym.TrialEnv):
         if rewards:
             self.rewards.update(rewards)
 
+        # Timing
         self.timing = {
             'fixation': 300,
             'sample': 500,
@@ -49,6 +50,7 @@ class DelayMatchSample(ngym.TrialEnv):
 
         self.theta = np.linspace(0, 2 * np.pi, dim_ring + 1)[:-1]
 
+        # Spaces
         name = {'fixation': 0, 'stimulus': range(1, dim_ring + 1)}
         self.observation_space = spaces.Box(
             -np.inf, np.inf, shape=(1 + dim_ring,), dtype=np.float32, name=name)
