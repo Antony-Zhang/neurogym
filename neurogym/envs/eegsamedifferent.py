@@ -8,42 +8,41 @@ from neurogym import spaces
 
 
 class EEGSameDifferent(ngym.TrialEnv):
-    """Delayed match-to-sample task.
-
-    A sample stimulus is shown during the sample period. The stimulus is
-    characterized by a one-dimensional variable, such as its orientation
-    between 0 and 360 degree. After a delay period, a test stimulus is
-    shown. The agent needs to determine whether the sample and the test
-    stimuli are equal, and report that decision during the decision period.
+    """ Same/Different task 
     
+    Derived from Delayed match-to-sample task.
+
     metadata = {
         'paper_link': '',
-        'paper_name': '''Neural Mechanisms of Visual Working Memory in 
-        Prefrontal Cortex of the Macaque''',
-        'tags': ['perceptual', 'working memory', 'two-alternative',
-                 'supervised']
+        'paper_name': '''''',
+        'tags': ['']
     }
     """
 
     def __init__(self, dt=50, rewards=None, timing=None, sigma=1.0, sigma2 = 0.2,
                  dim_ring=4, cue = None):
+        """
+        dim_ring: dimension of stimulus space, form the final input with fixation and cue
+        """
         super().__init__(dt=dt)
-        self.choices = [2, 3]
+        self.choices = [2, 3]       # matched or not-matched between sample and test 
         self.sigma = sigma / np.sqrt(self.dt)  # Input noise
         self.sigma2 = sigma2 / np.sqrt(self.dt)
         self.dim_ring = dim_ring
+
         # Rewards
         self.rewards = {'abort': -0.1, 'correct': +1., 'fail': 0.}
         if rewards:
             self.rewards.update(rewards)
 
-        self.cue_condition = [0,1,2]
-
+        # Cue
+        self.cue_condition = [0, 1, 2]
         if cue:
-            self.cue = cue - 1
+            self.cue = cue 
         else:
             self.cue = self.rng.choice(self.cue_condition)
 
+        # Timing
         self.timing = {
             'cue': 200,
             'fixation': 300,
@@ -52,24 +51,25 @@ class EEGSameDifferent(ngym.TrialEnv):
             'end': dt,
             'test': 200,
             'decision': 1000}
-
         if timing:
             self.timing.update(timing)
 
         self.abort = False
 
+        # Spaces
         name = {'fixation': 0, 'cue': 1, 'stimulus': range(2, dim_ring + 2)}
-        self.observation_space = spaces.Box(
-            -np.inf, np.inf, shape=(2 + dim_ring,), dtype=np.float32, name=name)
+        self.observation_space = spaces.Box(-np.inf, np.inf, 
+                                            shape=(2 + dim_ring,), 
+                                            dtype=np.float32, 
+                                            name=name)
 
-        name = {'fixation': 0, 'delay':3, 'match': 1, 'non-match': 2}
+        name = {'fixation': 0, 'delay': 1, 'match': 2, 'non-match': 3}
         self.action_space = spaces.Discrete(4, name=name)
 
         self.stimulus_space = np.arange(dim_ring)
 
     def _new_trial(self, **kwargs):
         # Trial
-
         trial = {
             'ground_truth': self.rng.choice(self.choices),
             'sample_theta': self.rng.choice(self.stimulus_space),
@@ -79,38 +79,41 @@ class EEGSameDifferent(ngym.TrialEnv):
         ground_truth = trial['ground_truth']
         sample_theta = trial['sample_theta']
 
+        # sample_sequence
         temp = np.zeros(self.dim_ring)
         temp[sample_theta] = 1.
-        sample_sequence = temp
+        sample_sequence = temp      # 其中只有下标为sample_theta的元素为1，其他为0
 
-        if ground_truth == 2:
+        # test_sequence, 若ground_truth为2，则与sample_sequence相同
+        if ground_truth == 2:   
+            test_theta = sample_theta
             test_sequence = sample_sequence
-            trial['test_theta'] = sample_theta
         else:
-            new_space = np.delete(self.stimulus_space,sample_theta)
-            test_theta = self.rng.choice(new_space)
+            new_space = np.delete(self.stimulus_space, sample_theta)    # 删去值为sample_theta的元素
+            test_theta = self.rng.choice(new_space)         # 从剩下的元素中随机选择一个
             temp = np.zeros(self.dim_ring)
             temp[test_theta] = 1.
             test_sequence = temp
-            trial['test_theta'] = test_theta
+
+        trial['test_theta'] = test_theta
 
         # Periods
         self.add_period(['cue', 'fixation', 'sample', 'delay', 'end', 'test', 'decision'])
 
         self.add_ob(1, where='fixation')
-        self.set_ob(0, 'cue', where='fixation')
-        self.set_ob(0, 'decision', where='fixation')
+        self.set_ob(0, period='cue', where='fixation')
+        self.set_ob(0, period='decision', where='fixation')
         
-        self.add_ob(0,  where='cue')
-        self.set_ob(self.cue+1.5, 'cue', where='cue')
+        self.add_ob(0, where='cue')
+        self.set_ob(self.cue+1.5, period='cue', where='cue')
         
-        self.add_ob(sample_sequence, 'sample', where='stimulus')
-        self.add_ob(test_sequence, 'test', where='stimulus')
-        self.add_randn(0, self.sigma, ['test'], where='stimulus')
-        self.add_randn(0, self.sigma2, ['delay'], where='stimulus')
+        self.add_ob(sample_sequence, period='sample', where='stimulus')
+        self.add_ob(test_sequence, period='test', where='stimulus')
+        self.add_randn(0, self.sigma, period=['test'], where='stimulus')
+        self.add_randn(0, self.sigma2, period=['delay'], where='stimulus')
 
-        self.set_groundtruth(ground_truth, 'test')
-        self.set_groundtruth(1, 'end')
+        self.set_groundtruth(ground_truth, period='test')
+        self.set_groundtruth(1, period='end')
 
         return trial
 
