@@ -43,11 +43,11 @@ class EEGSameDifferent(ngym.TrialEnv):
             self.cue = self.rng.choice(self.cue_condition)
 
         # Timing
-        self.timing = {
+        self.timing = {         # default timing
             'cue': 200,
-            'fixation': 300,
+            'fixation': 300,    # should vary among trials
             'sample': 200,
-            'delay': 700 + self.cue  * 300 - self.dt,
+            'delay': 700 + self.cue * 300 - self.dt,
             'end': dt,
             'test': 200,
             'decision': 1000}
@@ -58,7 +58,7 @@ class EEGSameDifferent(ngym.TrialEnv):
 
         # Spaces
         name = {'fixation': 0, 'cue': 1, 'stimulus': range(2, dim_ring + 2)}
-        self.observation_space = spaces.Box(-np.inf, np.inf, 
+        self.observation_space = spaces.Box(-10.0, 10.0,#-np.inf, np.inf,        # Obs.是在_new_trial中手动设置的，因而space的范围不需要特别关注
                                             shape=(2 + dim_ring,), 
                                             dtype=np.float32, 
                                             name=name)
