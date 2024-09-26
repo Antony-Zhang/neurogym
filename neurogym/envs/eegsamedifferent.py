@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# import copy
 import numpy as np
 
 import neurogym as ngym
@@ -20,7 +21,7 @@ class EEGSameDifferent(ngym.TrialEnv):
     """
 
     def __init__(self, dt=50, rewards=None, timing=None, sigma=1.0, sigma2 = 0.2,
-                 dim_ring=4, cue = None):
+                 dim_ring=4, cue=None):
         """
         dim_ring: dimension of stimulus space, form the final input with fixation and cue
         """
@@ -53,6 +54,8 @@ class EEGSameDifferent(ngym.TrialEnv):
             'decision': 1000}
         if timing:
             self.timing.update(timing)
+
+        self.seq_len = int(np.sum([*self.timing.values()])/dt) # The vector length of each trial
 
         self.abort = False
 
@@ -138,3 +141,16 @@ class EEGSameDifferent(ngym.TrialEnv):
                     reward = self.rewards['fail']
 
         return ob, reward, False, {'new_trial': new_trial, 'gt': gt}
+    
+    # def __deepcopy__(self, memo):
+    #     if id(self) in memo:
+    #         return memo[id(self)]
+    #     print("==self dict==")
+    #     print(self.__dict__)
+    #     new_env = EEGSameDifferent(**self.__dict__)
+    #     # new_env.rng = np.random.RandomState()  # 你可以选择一个种子
+    #     new_env.seed()
+    #     memo[id(self)] = new_env
+
+    #     return new_env
+    

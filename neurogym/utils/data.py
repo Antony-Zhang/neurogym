@@ -44,8 +44,9 @@ class Dataset(object):
         self.batch_first = batch_first
 
         if seq_len is None:
-            # TODO: infer sequence length from task
-            seq_len = 1000
+            # DONE: infer sequence length from task
+            # seq_len = 1000
+            seq_len = env.seq_len
 
         obs_shape = env.observation_space.shape
         action_shape = env.action_space.shape
@@ -80,6 +81,17 @@ class Dataset(object):
 
         self._i_batch = 0
         self.max_batch = max_batch
+
+    # def update_env(self, env_kwargs=None):  # TODO: update envs
+    #     env = self.env
+    #     for key, value in env_kwargs.items():
+    #         setattr(env, key, value)
+    #     # env.update_attr(**env_kwargs)
+    #     self.envs = [copy.deepcopy(env) for _ in range(self.batch_size)]
+    #     for env in self.envs:
+    #         env.reset()
+    #     self.seed()
+    #     self.env = self.envs[0]
 
     def _cache(self, **kwargs):
         for i in range(self.batch_size):
