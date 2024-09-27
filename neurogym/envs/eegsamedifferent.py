@@ -100,6 +100,7 @@ class EEGSameDifferent(ngym.TrialEnv):
         # Periods
         self.add_period(['cue', 'fixation', 'sample', 'delay', 'end', 'test', 'decision'])
 
+        # where表示在Obs.的哪个维度设置值(根据前文的name)，period表示在哪个时段设置值(默认为所有时段)
         self.add_ob(1, where='fixation')
         self.set_ob(0, period='cue', where='fixation')
         self.set_ob(0, period='decision', where='fixation')
@@ -109,7 +110,7 @@ class EEGSameDifferent(ngym.TrialEnv):
         
         self.add_ob(sample_sequence, period='sample', where='stimulus')
         self.add_ob(test_sequence, period='test', where='stimulus')
-        self.add_randn(0, self.sigma, period=['test'], where='stimulus')
+        self.add_randn(0, self.sigma, period=['test'], where='stimulus')    # Add random noise
         self.add_randn(0, self.sigma2, period=['delay'], where='stimulus')
 
         self.set_groundtruth(ground_truth, period='test')
