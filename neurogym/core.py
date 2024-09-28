@@ -120,6 +120,7 @@ class TrialEnv(BaseEnv):
         self.start_ind = dict()
         self.end_ind = dict()
         self._tmax = 0  # Length of each trial
+        self.seq_len = 0  # The sum of timing length of each trial
 
         self._top = self
 
