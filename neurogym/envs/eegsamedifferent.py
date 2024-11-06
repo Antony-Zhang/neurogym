@@ -38,10 +38,10 @@ class EEGSameDifferent(ngym.TrialEnv):
 
         # Cue
         self.cue_condition = [0, 1, 2]
-        if cue:
+        if cue is not None:     
             self.cue = cue 
         else:
-            self.cue = self.rng.choice(self.cue_condition)
+            self.cue = self.rng.choice(self.cue_condition)  # randomly selected
 
         # Timing
         self.timing = {         # default timing
